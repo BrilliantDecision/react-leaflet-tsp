@@ -1,15 +1,24 @@
+import { LeafletMouseEvent } from "leaflet";
+import { Dispatch, FC, SetStateAction } from "react";
 import { useMapEvents } from "react-leaflet";
+import { LatLng } from "./App";
 
-function MapControl() {
-//   const map = useMapEvents({
-//     click: (e) => {
-//       alert(e.latlng.);
-//     },
-//     locationfound: (location) => {
-//       console.log("location found:", location);
-//     },
-//   });
-//   return null;
+interface Props {
+  setPoints: Dispatch<SetStateAction<LatLng[]>>;
 }
+
+const MapControl: FC<Props> = ({ setPoints }) => {
+  const onClickMap = (e: LeafletMouseEvent) => {
+    setPoints((prevState) => [
+      ...prevState,
+      { lat: e.latlng.lat, lng: e.latlng.lng },
+    ]);
+  };
+  useMapEvents({
+    click: (e) => onClickMap(e),
+  });
+
+  return null;
+};
 
 export default MapControl;
