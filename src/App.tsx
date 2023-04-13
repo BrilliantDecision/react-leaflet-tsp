@@ -1,5 +1,5 @@
 import { LeafletMouseEvent } from "leaflet";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
 import MapControl from "./MapControl";
 import { Route, createRoute } from "./Route";
@@ -10,6 +10,7 @@ function App() {
   const [points, setPoints] = useState<L.LatLng[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
   const [info, setInfo] = useState({ oldLen: 0, newLen: 0 });
+  const index = useRef(0)
 
   const onClickMarker = (e: LeafletMouseEvent) => {
     const targetMarkerIndex = points.findIndex(
