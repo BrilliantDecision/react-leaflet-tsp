@@ -1,18 +1,22 @@
+import { AlgInput, AlgResponse } from "../type";
 import {
   annealSwap,
   getFitness,
   getRndInteger,
   setRandomSolve,
 } from "../utils";
-import { AnnealingOptions, AnnealingResponse } from "./type";
+import { AnnealingOptions } from "./type";
 
 export const doAnnealing = (
   values: AnnealingOptions,
-  matrix: number[][]
-): AnnealingResponse => {
+  matrix: number[][],
+  prevAlgData?: AlgInput
+): AlgResponse => {
   const { it, itPerTemp, tMax } = values;
 
-  let [currentBestPath, currentBestLength] = setRandomSolve(matrix);
+  let [currentBestPath, currentBestLength] = prevAlgData?.path
+    ? [prevAlgData.path, getFitness(prevAlgData.path, matrix)]
+    : setRandomSolve(matrix);
   let [challengerPath, challengerLength] = [
     [...currentBestPath],
     currentBestLength,

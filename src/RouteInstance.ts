@@ -4,7 +4,14 @@ export const getRouteInstance = (waypoints: L.LatLng[]) => {
   const instance = L.Routing.control({
     waypoints,
     lineOptions: {
-      styles: [{ color: "rgb(255,0,0)", weight: 4 }],
+      styles: [
+        {
+          color: "rgb(255,0,0)",
+          weight: 4,
+          dashArray: [10, 10],
+          dashOffset: "5",
+        },
+      ],
       extendToWaypoints: false,
       missingRouteTolerance: 1,
     },
@@ -12,7 +19,7 @@ export const getRouteInstance = (waypoints: L.LatLng[]) => {
     addWaypoints: false,
     routeWhileDragging: true,
     fitSelectedRoutes: true,
-    showAlternatives: false,
+    showAlternatives: true,
   });
   return instance;
 };

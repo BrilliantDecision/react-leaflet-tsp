@@ -3,9 +3,3 @@ export interface AnnealingOptions {
   itPerTemp: number;
   tMax: number;
 }
-
-export interface AnnealingResponse {
-  time: number;
-  len: number;
-  path: number[];
-}

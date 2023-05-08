@@ -50,7 +50,7 @@ export const setRandomSolve = (matrix: number[][]): [number[], number] => {
   return [currentBestPath, getFitness(currentBestPath, matrix)];
 };
 
-const generateRandomNodes = (nodesLen: number) => {
+export const generateRandomNodes = (nodesLen: number) => {
   const nodes = [];
 
   for (let i = 0; i < nodesLen; i++) {
