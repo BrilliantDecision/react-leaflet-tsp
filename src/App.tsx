@@ -9,6 +9,8 @@ import { doNearestSearch } from "./algorithms/nearestSearch/nearestSearch";
 import { ComputedRouteInfo, Info } from "./ui/modals/ComptedRouteInfo";
 import { NavigateModal } from "./ui/modals/NavigateModal";
 import axios from "axios";
+import { CalculateRouteBlock } from "./ui/components/CalculateRouteBlock";
+import { Options } from "./ui/modals/Options";
 
 export interface ResponseDurationTable {
   code: "Ok" | unknown;
@@ -24,6 +26,8 @@ export interface Route {
   duration: number;
 }
 
+export type TSPAlgorithm = "nearest" | "annealing" | "hybrid";
+
 function App() {
   const [map, setMap] = useState<Map | null>(null);
   const [points, setPoints] = useState<L.LatLng[]>([]);
@@ -31,6 +35,8 @@ function App() {
   const [info, setInfo] = useState<Info>();
   const [showInfo, setShowInfo] = useState(false);
   const [isShowingNavigate, setIsShowingNavigate] = useState(false);
+  const [isShowingOptions, setIsShowingOptions] = useState(false);
+  const [algorithm, setAlgorithm] = useState<TSPAlgorithm>("hybrid");
 
   const onClickMarker = (e: LeafletMouseEvent) => {
     const targetMarkerIndex = points.findIndex(
@@ -57,27 +63,52 @@ function App() {
       .then((data) => setRoute(data.data.durations));
   };
 
+  const runAlgorithm = (matrix: number[][]) => {
+    if (algorithm === "nearest") {
+      // nearest
+
+      const { path } = doNearestSearch({
+        matrix,
+      });
+      return path;
+    } else if (algorithm === "annealing") {
+      // annealing
+
+      const { path } = doAnnealing(
+        { it: 100, itPerTemp: 10, tMax: 1000 },
+        { matrix }
+      );
+      return path;
+    } else {
+      // hybrid
+
+      // run nearest
+      const { path: nearestSearchPath } = doNearestSearch({
+        matrix,
+      });
+
+      // run annealing on nearest path
+      const { path: annealingPath } = doAnnealing(
+        { it: 1000, itPerTemp: 100, tMax: 100 },
+        { matrix, previousPath: nearestSearchPath }
+      );
+      return annealingPath;
+    }
+  };
+
   // draw routes and start algorithm
   const setRoute = async (durations: number[][]) => {
     // start time
     const timeBefore = new Date().getTime();
 
-    // run nearest on durations table
-    const { path: nearestSearchPath } = doNearestSearch({ matrix: durations });
-
-    // run annealing on nearest path
-    const { path: annealingPath } = doAnnealing(
-      { it: 1000, itPerTemp: 100, tMax: 100 },
-      { matrix: durations, previousPath: nearestSearchPath }
-    );
-
+    const calculatedPath = runAlgorithm(durations);
     // final time
     const time = (new Date().getTime() - timeBefore) / 1000;
 
     // new order of coordinates (new path)
     let newPoints: L.LatLng[] = [];
 
-    annealingPath.forEach((val) => {
+    calculatedPath.forEach((val) => {
       newPoints.push(points[val]);
     });
 
@@ -96,7 +127,7 @@ function App() {
         [newPoints[0].lng, newPoints[0].lat].join(","),
       ].join(";")}?overview=false`
     );
-    console.log(points);
+
     // old
     const oldDistance =
       Math.round((responseOldPath.data.routes[0].distance / 1000) * 100) / 100;
@@ -136,7 +167,7 @@ function App() {
         ref={setMap}
         center={[58.5213, 31.271]}
         zoom={13}
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -160,10 +191,20 @@ function App() {
         {routes.map((NewRoute, index) => (
           <NewRoute key={index} />
         ))}
+        <CalculateRouteBlock
+          isShowing={points.length > 1}
+          onClickStart={onClickStart}
+        />
       </MapContainer>
-      <NavigateModal
+      {/* <NavigateModal
         isShowing={isShowingNavigate}
         onClickStart={() => onClickStart()}
+      /> */}
+      <Options
+        algorithm={algorithm}
+        setAlgorithm={(value) => setAlgorithm(() => value)}
+        isShowing={isShowingOptions}
+        setIsShowing={setIsShowingOptions}
       />
     </div>
   );
