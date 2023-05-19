@@ -17,17 +17,17 @@ export const doNearestSearch = (matrix: number[][]): AlgResponse => {
     let previousVertex = path[0];
 
     while (allowNodes.length !== 0) {
-      const vertexAndLengths: [number, number][] = [];
+      const vertexAndDurations: [number, number][] = [];
 
       for (const allow of allowNodes) {
-        vertexAndLengths.push([allow, matrix[previousVertex][allow]]);
+        vertexAndDurations.push([allow, matrix[previousVertex][allow]]);
       }
 
-      vertexAndLengths.sort((a, b) => a[1] - b[1]);
-      path.push(vertexAndLengths[0][0]);
-      previousVertex = vertexAndLengths[0][0];
+      vertexAndDurations.sort((a, b) => a[1] - b[1]);
+      path.push(vertexAndDurations[0][0]);
+      previousVertex = vertexAndDurations[0][0];
       allowNodes.splice(
-        allowNodes.findIndex((v) => v === vertexAndLengths[0][0]),
+        allowNodes.findIndex((v) => v === vertexAndDurations[0][0]),
         1
       );
     }

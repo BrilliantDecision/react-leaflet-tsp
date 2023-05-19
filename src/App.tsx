@@ -1,13 +1,10 @@
 import { LeafletMouseEvent, Map } from "leaflet";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import MapControl from "./utils/Map/MapControl";
-import { Route, createRoute } from "./utils/Route/Route";
-import { createMatrix } from "./algorithms/utils";
+import { CreatedRoute, createRoute } from "./utils/Route/Route";
 import { doAnnealing } from "./algorithms/annealing/annealing";
 import L from "leaflet";
-import "leaflet-easybutton/src/easy-button.js";
-import "leaflet-easybutton/src/easy-button.css";
 import { doNearestSearch } from "./algorithms/nearestSearch/nearestSearch";
 import { ComputedRouteInfo } from "./ui/modals/ComptedRouteInfo";
 import { NavigateModal } from "./ui/modals/NavigateModal";
@@ -24,14 +21,21 @@ export interface ResponseDurationTable {
   durations: number[][];
 }
 
+export interface RouteResponse {
+  routes: Route[];
+}
+
+export interface Route {
+  distance: number;
+}
+
 function App() {
   const [map, setMap] = useState<Map | null>(null);
   const [points, setPoints] = useState<L.LatLng[]>([]);
-  const [routes, setRoutes] = useState<Route[]>([]);
+  const [routes, setRoutes] = useState<CreatedRoute[]>([]);
   const [info, setInfo] = useState<Info>();
   const [showInfo, setShowInfo] = useState(false);
   const [isShowingNavigate, setIsShowingNavigate] = useState(false);
-  const firstRender = useRef(false);
 
   const onClickMarker = (e: LeafletMouseEvent) => {
     const targetMarkerIndex = points.findIndex(
@@ -45,51 +49,48 @@ function App() {
   };
 
   const onClickStart = () => {
+    const parsedPoints = points.map((val) => [val.lat, val.lng]).join(";");
     axios
       .get<ResponseDurationTable>(
-        `https://router.project-osrm.org/table/v1/driving/${points
-          .map((val) => [val.lat, val.lng])
-          .join(";")}`
+        `https://router.project-osrm.org/table/v1/driving/${parsedPoints}`
       )
-      .then((data) => setRoute(data.data));
+      .then((data) => setRoute(data.data.durations));
   };
 
   // draw routes and start algorithm
-  const setRoute = async (durations: ResponseDurationTable) => {
-    let oldLen = 0;
-    const response = await axios.get(
-      `http://router.project-osrm.org/route/v1/driving/${points
-        .map((val) => [val.lat, val.lng])
-        .join(";")}?overview=false`
-    );
-
-    const matrix: number[][] = createMatrix(points);
+  const setRoute = async (durations: number[][]) => {
     const timeBefore = new Date().getTime();
-    const { path: nearestSearchPath, len: newLen } = doNearestSearch(matrix);
-    // const { path: annealingPath, len: newLen } = doAnnealing(
-    //   { it: 1000, itPerTemp: 100, tMax: 100 },
-    //   matrix,
-    //   { path: nearestSearchPath }
-    // );
+    const { path: nearestSearchPath } = doNearestSearch(durations);
+    const { path: annealingPath, len: newLen } = doAnnealing(
+      { it: 1000, itPerTemp: 100, tMax: 100 },
+      durations,
+      { path: nearestSearchPath }
+    );
     const time = (new Date().getTime() - timeBefore) / 1000;
 
     let newPoints: L.LatLng[] = [];
-    nearestSearchPath.forEach((val) => {
+
+    annealingPath.forEach((val) => {
       newPoints.push(points[val]);
     });
+
+    let oldLen = 0;
+    const response = await axios.get<RouteResponse>(
+      `http://router.project-osrm.org/route/v1/driving/${[
+        ...points.map((val) => [val.lat, val.lng]),
+        [points[0].lat, points[0].lng],
+      ].join(";")}?overview=false`
+    );
+    oldLen += response.data.routes[0].distance;
+
+    setRoutes(() => [createRoute([...newPoints, newPoints[0]])]);
     setInfo(() => ({
       time,
       oldLen: Math.round((oldLen / 1000) * 100) / 100,
       newLen: Math.round((newLen / 1000) * 100) / 100,
     }));
-    setRoutes((prevState) => [createRoute([...newPoints, newPoints[0]])]);
     setShowInfo(() => true);
   };
-
-  // useEffect(() => {
-  //   if (!map || firstRender.current) return;
-  //   firstRender.current = true;
-  // }, [map]);
 
   useEffect(() => {
     if (points.length > 1) {
