@@ -1,8 +1,8 @@
 import { LeafletMouseEvent, Map } from "leaflet";
-import { useEffect, useState } from "react";
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
-import MapControl from "./MapControl";
-import { Route, createRoute } from "./Route";
+import { useEffect, useRef, useState } from "react";
+import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import MapControl from "./utils/Map/MapControl";
+import { Route, createRoute } from "./utils/Route/Route";
 import { createMatrix } from "./algorithms/utils";
 import { doAnnealing } from "./algorithms/annealing/annealing";
 import L from "leaflet";
@@ -10,11 +10,18 @@ import "leaflet-easybutton/src/easy-button.js";
 import "leaflet-easybutton/src/easy-button.css";
 import { doNearestSearch } from "./algorithms/nearestSearch/nearestSearch";
 import { ComputedRouteInfo } from "./ui/modals/ComptedRouteInfo";
+import { NavigateModal } from "./ui/modals/NavigateModal";
+import axios from "axios";
 
 export interface Info {
   time?: number;
   oldLen?: number;
   newLen?: number;
+}
+
+export interface ResponseDurationTable {
+  code: "Ok" | unknown;
+  durations: number[][];
 }
 
 function App() {
@@ -23,6 +30,8 @@ function App() {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [info, setInfo] = useState<Info>();
   const [showInfo, setShowInfo] = useState(false);
+  const [isShowingNavigate, setIsShowingNavigate] = useState(false);
+  const firstRender = useRef(false);
 
   const onClickMarker = (e: LeafletMouseEvent) => {
     const targetMarkerIndex = points.findIndex(
@@ -35,29 +44,37 @@ function App() {
     });
   };
 
-  // draw routes and start algorithm
-  const onClickStart = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    e.stopPropagation();
+  const onClickStart = () => {
+    axios
+      .get<ResponseDurationTable>(
+        `https://router.project-osrm.org/table/v1/driving/${points
+          .map((val) => [val.lat, val.lng])
+          .join(";")}`
+      )
+      .then((data) => setRoute(data.data));
+  };
 
+  // draw routes and start algorithm
+  const setRoute = async (durations: ResponseDurationTable) => {
     let oldLen = 0;
-    points.forEach((_, index) => {
-      oldLen += points[index].distanceTo(
-        points[index + 1 >= points.length ? 0 : index + 1]
-      );
-    });
+    const response = await axios.get(
+      `http://router.project-osrm.org/route/v1/driving/${points
+        .map((val) => [val.lat, val.lng])
+        .join(";")}?overview=false`
+    );
 
     const matrix: number[][] = createMatrix(points);
     const timeBefore = new Date().getTime();
-    const { path: nearestSearchPath } = doNearestSearch(matrix);
-    const { path: annealingPath, len: newLen } = doAnnealing(
-      { it: 1000, itPerTemp: 100, tMax: 100 },
-      matrix,
-      { path: nearestSearchPath }
-    );
+    const { path: nearestSearchPath, len: newLen } = doNearestSearch(matrix);
+    // const { path: annealingPath, len: newLen } = doAnnealing(
+    //   { it: 1000, itPerTemp: 100, tMax: 100 },
+    //   matrix,
+    //   { path: nearestSearchPath }
+    // );
     const time = (new Date().getTime() - timeBefore) / 1000;
 
     let newPoints: L.LatLng[] = [];
-    annealingPath.forEach((val) => {
+    nearestSearchPath.forEach((val) => {
       newPoints.push(points[val]);
     });
     setInfo(() => ({
@@ -69,58 +86,56 @@ function App() {
     setShowInfo(() => true);
   };
 
-  useEffect(() => {
-    if (!map) return;
+  // useEffect(() => {
+  //   if (!map || firstRender.current) return;
+  //   firstRender.current = true;
+  // }, [map]);
 
-    L.easyButton("fa-globe", () => {
-      map.locate().on("locationfound", function (e) {
-        map.flyTo(e.latlng, map.getZoom());
-      });
-    }).addTo(map);
-  }, [map]);
+  useEffect(() => {
+    if (points.length > 1) {
+      setIsShowingNavigate(() => true);
+    } else {
+      setIsShowingNavigate(() => false);
+    }
+  }, [points]);
 
   return (
-    <MapContainer
-      id="map"
-      ref={setMap}
-      center={[55.75222, 37.61556]}
-      zoom={13}
-      scrollWheelZoom={false}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <ComputedRouteInfo
-        show={showInfo}
-        onClose={() => setShowInfo(false)}
-        info={info}
-      />
-      <button
-        onClick={(e) => onClickStart(e)}
-        className="absolute z-[999999999] m-2 ml-32 px-2 py-1 bg-green-500 text-white rounded-md scale-125"
+    <div className="relative">
+      <MapContainer
+        id="map"
+        ref={setMap}
+        center={[55.75222, 37.61556]}
+        zoom={13}
+        scrollWheelZoom={false}
       >
-        Start
-      </button>
-      <MapControl setPoints={setPoints} />
-      {points.map((val) => (
-        <Marker
-          key={`${val.lat}${val.lng}`}
-          eventHandlers={{
-            click: (e) => onClickMarker(e),
-            mouseover: (e) => console.log(e.sourceTarget),
-          }}
-          position={val}
-        >
-          <Popup>
-            A pretty CSS3 popup. <br /> Easily customizable.
-          </Popup>
-        </Marker>
-      ))}
-      {routes.map((NewRoute, index) => (
-        <NewRoute key={index} />
-      ))}
-    </MapContainer>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <ComputedRouteInfo
+          show={showInfo}
+          onClose={() => setShowInfo(false)}
+          info={info}
+        />
+        <MapControl setPoints={setPoints} />
+        {points.map((val) => (
+          <Marker
+            key={`${val.lat}${val.lng}`}
+            eventHandlers={{
+              click: (e) => onClickMarker(e),
+            }}
+            position={val}
+          ></Marker>
+        ))}
+        {routes.map((NewRoute, index) => (
+          <NewRoute key={index} />
+        ))}
+      </MapContainer>
+      <NavigateModal
+        isShowing={isShowingNavigate}
+        onClickStart={() => onClickStart()}
+      />
+    </div>
   );
 }
 

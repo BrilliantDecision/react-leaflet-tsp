@@ -22,5 +22,5 @@
   },
   "include": [
     "src"
-, "src/Route.tsx"  ]
+, "src/utils/Route/Route.tsx"  ]
 }
