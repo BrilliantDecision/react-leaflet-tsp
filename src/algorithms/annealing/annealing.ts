@@ -8,14 +8,14 @@ import {
 import { AnnealingOptions } from "./type";
 
 export const doAnnealing = (
-  values: AnnealingOptions,
-  matrix: number[][],
-  prevAlgData?: AlgInput
+  options: AnnealingOptions,
+  data: AlgInput
 ): AlgResponse => {
-  const { it, itPerTemp, tMax } = values;
+  const { it, itPerTemp, tMax } = options;
+  const { previousPath, matrix } = data;
 
-  let [currentBestPath, currentBestLength] = prevAlgData?.path
-    ? [prevAlgData.path, getFitness(prevAlgData.path, matrix)]
+  let [currentBestPath, currentBestLength] = previousPath
+    ? [previousPath, getFitness(previousPath, matrix)]
     : setRandomSolve(matrix);
   let [challengerPath, challengerLength] = [
     [...currentBestPath],
@@ -51,7 +51,7 @@ export const doAnnealing = (
 
   return {
     time: Date.now() - time,
-    len: Math.ceil(currentBestLength),
+    duration: Math.ceil(currentBestLength),
     path: currentBestPath,
   };
 };

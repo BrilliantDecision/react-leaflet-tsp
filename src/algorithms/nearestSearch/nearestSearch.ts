@@ -1,7 +1,8 @@
-import { AlgResponse } from "../type";
+import { AlgInput, AlgResponse } from "../type";
 import { generateRandomNodes, getFitness } from "../utils";
 
-export const doNearestSearch = (matrix: number[][]): AlgResponse => {
+export const doNearestSearch = (data: AlgInput): AlgResponse => {
+  const { matrix } = data;
   const time = Date.now();
   let bestPath = generateRandomNodes(matrix[0].length);
   const vertexes = [];
@@ -39,7 +40,7 @@ export const doNearestSearch = (matrix: number[][]): AlgResponse => {
 
   return {
     time: Date.now() - time,
-    len: Math.ceil(getFitness(bestPath, matrix)),
+    duration: Math.ceil(getFitness(bestPath, matrix)),
     path: bestPath,
   };
 };

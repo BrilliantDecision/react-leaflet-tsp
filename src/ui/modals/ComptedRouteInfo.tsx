@@ -1,11 +1,18 @@
 import { Dialog, Transition } from "@headlessui/react";
 import { FC, Fragment } from "react";
-import { Info } from "../../App";
 
 interface Props {
   show: boolean;
   onClose: () => void;
   info?: Info;
+}
+
+export interface Info {
+  time?: number;
+  oldDistance?: number;
+  newDistance?: number;
+  oldDuration?: number;
+  newDuration?: number;
 }
 
 export const ComputedRouteInfo: FC<Props> = ({ show, onClose, info }) => {
@@ -51,10 +58,10 @@ export const ComputedRouteInfo: FC<Props> = ({ show, onClose, info }) => {
                     {`Затраченное время: ${info?.time} мс.`}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {`Длина исходного пути: ${info?.oldLen} км.`}
+                    {`Длина исходного пути: ${info?.oldDistance} км.`}
                   </p>
                   <p className="text-sm text-gray-500">
-                    {`Длина найденного пути: ${info?.newLen} км.`}
+                    {`Длина найденного пути: ${info?.newDistance} км.`}
                   </p>
                 </div>
 

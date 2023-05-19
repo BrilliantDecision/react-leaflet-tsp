@@ -81,19 +81,3 @@ function shuffle(oldArray: number[]) {
   }
   return newArray;
 }
-
-export const createMatrix = (nodes: L.LatLng[]) => {
-  const matrix: number[][] = [];
-  for (let i = 0; i < nodes.length; i++) {
-    const matrixRow = [];
-    for (let j = 0; j < i; j++) {
-      matrixRow.push(matrix[j][i]);
-    }
-    matrixRow.push(0);
-    for (let j = i + 1; j < nodes.length; j++) {
-      matrixRow.push(nodes[i].distanceTo(nodes[j]));
-    }
-    matrix.push(matrixRow);
-  }
-  return matrix;
-};

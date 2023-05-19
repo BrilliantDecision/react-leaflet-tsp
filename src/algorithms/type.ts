@@ -1,9 +1,10 @@
 export interface AlgResponse {
   time: number;
-  len: number;
+  duration: number;
   path: number[];
 }
 
 export interface AlgInput {
-  path?: number[];
+  matrix: number[][];
+  previousPath?: number[];
 }

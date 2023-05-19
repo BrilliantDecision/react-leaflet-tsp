@@ -6,15 +6,9 @@ import { CreatedRoute, createRoute } from "./utils/Route/Route";
 import { doAnnealing } from "./algorithms/annealing/annealing";
 import L from "leaflet";
 import { doNearestSearch } from "./algorithms/nearestSearch/nearestSearch";
-import { ComputedRouteInfo } from "./ui/modals/ComptedRouteInfo";
+import { ComputedRouteInfo, Info } from "./ui/modals/ComptedRouteInfo";
 import { NavigateModal } from "./ui/modals/NavigateModal";
 import axios from "axios";
-
-export interface Info {
-  time?: number;
-  oldLen?: number;
-  newLen?: number;
-}
 
 export interface ResponseDurationTable {
   code: "Ok" | unknown;
@@ -27,6 +21,7 @@ export interface RouteResponse {
 
 export interface Route {
   distance: number;
+  duration: number;
 }
 
 function App() {
@@ -48,8 +43,13 @@ function App() {
     });
   };
 
+  // running calculating route
   const onClickStart = () => {
-    const parsedPoints = points.map((val) => [val.lat, val.lng]).join(";");
+    const parsedPoints = points
+      .map((val) => [val.lng, val.lat].join(","))
+      .join(";");
+
+    // get duration table
     axios
       .get<ResponseDurationTable>(
         `https://router.project-osrm.org/table/v1/driving/${parsedPoints}`
@@ -59,35 +59,64 @@ function App() {
 
   // draw routes and start algorithm
   const setRoute = async (durations: number[][]) => {
+    // start time
     const timeBefore = new Date().getTime();
-    const { path: nearestSearchPath } = doNearestSearch(durations);
-    const { path: annealingPath, len: newLen } = doAnnealing(
+
+    // run nearest on durations table
+    const { path: nearestSearchPath } = doNearestSearch({ matrix: durations });
+
+    // run annealing on nearest path
+    const { path: annealingPath } = doAnnealing(
       { it: 1000, itPerTemp: 100, tMax: 100 },
-      durations,
-      { path: nearestSearchPath }
+      { matrix: durations, previousPath: nearestSearchPath }
     );
+
+    // final time
     const time = (new Date().getTime() - timeBefore) / 1000;
 
+    // new order of coordinates (new path)
     let newPoints: L.LatLng[] = [];
 
     annealingPath.forEach((val) => {
       newPoints.push(points[val]);
     });
 
-    let oldLen = 0;
-    const response = await axios.get<RouteResponse>(
+    // old path info
+    const responseOldPath = await axios.get<RouteResponse>(
       `http://router.project-osrm.org/route/v1/driving/${[
-        ...points.map((val) => [val.lat, val.lng]),
-        [points[0].lat, points[0].lng],
+        ...points.map((val) => [val.lng, val.lat].join(",")),
+        [points[0].lng, points[0].lat].join(","),
       ].join(";")}?overview=false`
     );
-    oldLen += response.data.routes[0].distance;
 
+    // new path info
+    const responseNewPath = await axios.get<RouteResponse>(
+      `http://router.project-osrm.org/route/v1/driving/${[
+        ...newPoints.map((val) => [val.lng, val.lat].join(",")),
+        [newPoints[0].lng, newPoints[0].lat].join(","),
+      ].join(";")}?overview=false`
+    );
+    console.log(points);
+    // old
+    const oldDistance =
+      Math.round((responseOldPath.data.routes[0].distance / 1000) * 100) / 100;
+    const oldDuration = responseOldPath.data.routes[0].duration;
+
+    // new
+    const newDistance =
+      Math.round((responseNewPath.data.routes[0].distance / 1000) * 100) / 100;
+    const newDuration = responseNewPath.data.routes[0].duration;
+
+    // draw route (FIX - now request running)
     setRoutes(() => [createRoute([...newPoints, newPoints[0]])]);
+
+    // set info
     setInfo(() => ({
       time,
-      oldLen: Math.round((oldLen / 1000) * 100) / 100,
-      newLen: Math.round((newLen / 1000) * 100) / 100,
+      oldDistance,
+      newDistance,
+      oldDuration,
+      newDuration,
     }));
     setShowInfo(() => true);
   };
@@ -105,7 +134,7 @@ function App() {
       <MapContainer
         id="map"
         ref={setMap}
-        center={[55.75222, 37.61556]}
+        center={[58.5213, 31.271]}
         zoom={13}
         scrollWheelZoom={false}
       >
