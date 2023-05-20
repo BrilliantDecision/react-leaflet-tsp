@@ -94,7 +94,7 @@ function App() {
       // annealing
 
       const { path } = doAnnealing(
-        { it: 100, itPerTemp: 10, tMax: 1000 },
+        { it: 1000, itPerTemp: 200, tMax: 100 },
         { matrix }
       );
       return path;
@@ -120,7 +120,9 @@ function App() {
     // start time
     const timeBefore = new Date().getTime();
 
+    // run algorithm
     const calculatedPath = runAlgorithm(durations);
+
     // final time
     const time = (new Date().getTime() - timeBefore) / 1000;
 
