@@ -110,7 +110,7 @@ export const Options: FC<Props> = ({
                                             : "text-gray-500"
                                         }`}
                                       >
-                                        <span>{algorithm.description}</span>
+                                        <span>{algorithm.description}</span>{" "}
                                         <span aria-hidden="true">&middot;</span>
                                       </RadioGroup.Description>
                                     </div>

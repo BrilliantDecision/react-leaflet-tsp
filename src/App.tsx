@@ -1,5 +1,5 @@
 import { LeafletMouseEvent, Map } from "leaflet";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import MapControl from "./utils/Map/MapControl";
 import { CreatedRoute, createRoute } from "./utils/Route/Route";
@@ -29,14 +29,15 @@ export interface Route {
 export type TSPAlgorithm = "nearest" | "annealing" | "hybrid";
 
 function App() {
-  const [map, setMap] = useState<Map | null>(null);
-  const [points, setPoints] = useState<L.LatLng[]>([]);
-  const [routes, setRoutes] = useState<CreatedRoute[]>([]);
-  const [info, setInfo] = useState<Info>();
-  const [showInfo, setShowInfo] = useState(false);
-  const [isShowingNavigate, setIsShowingNavigate] = useState(false);
-  const [isShowingOptions, setIsShowingOptions] = useState(false);
-  const [algorithm, setAlgorithm] = useState<TSPAlgorithm>("hybrid");
+  const [map, setMap] = useState<Map | null>(null); // map itself
+  const [points, setPoints] = useState<L.LatLng[]>([]); // markers on map
+  const [routes, setRoutes] = useState<CreatedRoute[]>([]); // created routes on map
+  const [info, setInfo] = useState<Info>(); // info about route
+  const [showInfo, setShowInfo] = useState(false); // show info about route
+  const [isShowingNavigate, setIsShowingNavigate] = useState(false); //  open navigate modal
+  const [isShowingOptions, setIsShowingOptions] = useState(false); // open algorithms and options
+  const [algorithm, setAlgorithm] = useState<TSPAlgorithm>("hybrid"); // choose algorithm to run
+  const [previousPoint, setPreviousPoint] = useState<L.LatLng>(); // save point on dragStart event and remove it when dragEnd event
 
   const onClickMarker = (e: LeafletMouseEvent) => {
     const targetMarkerIndex = points.findIndex(
@@ -45,6 +46,24 @@ function App() {
     setPoints((prevState) => {
       const newState = [...prevState];
       newState.splice(targetMarkerIndex, 1);
+      return newState;
+    });
+  };
+
+  const addMarker = (data: L.LatLng) => {
+    setPoints((prevState) => [...prevState, data]);
+  };
+
+  const deleteMarker = (data: L.LatLng) => {
+    setPoints((prevState) => {
+      const newState = [...prevState];
+      const targetIndex = newState.findIndex(
+        (val) => val.lng === data.lng && val.lat === data.lat
+      );
+
+      if (targetIndex === -1) return prevState;
+
+      newState.splice(targetIndex, 1);
       return newState;
     });
   };
@@ -184,8 +203,31 @@ function App() {
             key={`${val.lat}${val.lng}`}
             eventHandlers={{
               click: (e) => onClickMarker(e),
+              dragstart: (e) => {
+                setPreviousPoint(() => val);
+              },
+              dragend: (e) => {
+                setPoints((prevState) => {
+                  if (!previousPoint) return prevState;
+
+                  const newState = [...prevState];
+                  const targetIndex = newState.findIndex(
+                    (val) =>
+                      val.lat === previousPoint.lat &&
+                      val.lng === previousPoint.lng
+                  );
+
+                  if (targetIndex === -1) return prevState;
+
+                  newState.splice(targetIndex, 1);
+                  newState.push(e.target._latlng as L.LatLng);
+
+                  return newState;
+                });
+              },
             }}
             position={val}
+            draggable
           ></Marker>
         ))}
         {routes.map((NewRoute, index) => (

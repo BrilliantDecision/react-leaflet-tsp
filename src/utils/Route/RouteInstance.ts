@@ -20,6 +20,11 @@ export const getRouteInstance = (waypoints: L.LatLng[]) => {
     routeWhileDragging: true,
     fitSelectedRoutes: true,
     showAlternatives: true,
+    plan: L.Routing.plan(waypoints, {
+      createMarker() {
+        return false;
+      },
+    }),
   });
   return instance;
 };
