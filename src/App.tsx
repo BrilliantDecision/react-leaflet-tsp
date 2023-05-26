@@ -38,6 +38,7 @@ function App() {
   const [isShowingOptions, setIsShowingOptions] = useState(false); // open algorithms and options
   const [algorithm, setAlgorithm] = useState<TSPAlgorithm>("hybrid"); // choose algorithm to run
   const [previousPoint, setPreviousPoint] = useState<L.LatLng>(); // save point on dragStart event and remove it when dragEnd event
+  const [draggedEnd, setDraggedEnd] = useState(false); // dragEnd event was invoked
 
   const onClickMarker = (e: LeafletMouseEvent) => {
     const targetMarkerIndex = points.findIndex(
@@ -46,24 +47,6 @@ function App() {
     setPoints((prevState) => {
       const newState = [...prevState];
       newState.splice(targetMarkerIndex, 1);
-      return newState;
-    });
-  };
-
-  const addMarker = (data: L.LatLng) => {
-    setPoints((prevState) => [...prevState, data]);
-  };
-
-  const deleteMarker = (data: L.LatLng) => {
-    setPoints((prevState) => {
-      const newState = [...prevState];
-      const targetIndex = newState.findIndex(
-        (val) => val.lng === data.lng && val.lat === data.lat
-      );
-
-      if (targetIndex === -1) return prevState;
-
-      newState.splice(targetIndex, 1);
       return newState;
     });
   };
@@ -181,6 +164,12 @@ function App() {
     }
   }, [points]);
 
+  useEffect(() => {
+    if (!draggedEnd || !routes.length) return;
+    setDraggedEnd(() => false);
+    onClickStart();
+  }, [draggedEnd]);
+
   return (
     <div className="relative">
       <MapContainer
@@ -226,6 +215,7 @@ function App() {
 
                   return newState;
                 });
+                setDraggedEnd(() => true);
               },
             }}
             position={val}
