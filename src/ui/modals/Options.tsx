@@ -19,7 +19,7 @@ export const Options: FC<Props> = ({
 }) => {
   return (
     <>
-      <div className="leaflet-top leaflet-right z-[1000000]">
+      <div className="leaflet-top leaflet-right">
         <div className="leaflet-control leaflet-bar bg-white">
           <button
             className="p-2"

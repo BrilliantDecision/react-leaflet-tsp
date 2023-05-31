@@ -1,6 +1,7 @@
 import { LeafletMouseEvent, Map } from "leaflet";
 import { useEffect, useRef, useState } from "react";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import { useLeafletContext } from "@react-leaflet/core";
 import MapControl from "./utils/Map/MapControl";
 import { CreatedRoute, createRoute } from "./utils/Route/Route";
 import { doAnnealing } from "./algorithms/annealing/annealing";
@@ -39,6 +40,7 @@ function App() {
   const [algorithm, setAlgorithm] = useState<TSPAlgorithm>("hybrid"); // choose algorithm to run
   const [previousPoint, setPreviousPoint] = useState<L.LatLng>(); // save point on dragStart event and remove it when dragEnd event
   const [draggedEnd, setDraggedEnd] = useState(false); // dragEnd event was invoked
+  const [routeControl, setRouteControl] = useState<L.Control>();
 
   const onClickMarker = (e: LeafletMouseEvent) => {
     const targetMarkerIndex = points.findIndex(
@@ -97,6 +99,23 @@ function App() {
       return annealingPath;
     }
   };
+
+  // const customRouteControl = L.Control.extend({
+  //   options: {
+  //     position: "topleft",
+  //     //control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
+  //   },
+  //   onAdd: function () {
+  //     const img = L.DomUtil.create(
+  //       "img",
+  //       "leaflet-bar leaflet-control leaflet-control-custom"
+  //     );
+  //     img.src = chevronDoubleUpIcon;
+  //     img.style.backgroundColor = "white";
+  //     img.onclick = function () {};
+  //     return img;
+  //   },
+  // });
 
   // draw routes and start algorithm
   const setRoute = async (durations: number[][]) => {
@@ -170,6 +189,16 @@ function App() {
     onClickStart();
   }, [draggedEnd]);
 
+  useEffect(() => {
+    if (!map || !routeControl) return;
+    if (points.length > 1) map.addControl(routeControl);
+    else map.removeControl(routeControl);
+  }, [points.length]);
+
+  // useEffect(() => {
+  //   setRouteControl(() => new customRouteControl());
+  // }, []);
+
   return (
     <div className="relative">
       <MapContainer
@@ -225,10 +254,6 @@ function App() {
         {routes.map((NewRoute, index) => (
           <NewRoute key={index} />
         ))}
-        <CalculateRouteBlock
-          isShowing={points.length > 1}
-          onClickStart={onClickStart}
-        />
       </MapContainer>
       {/* <NavigateModal
         isShowing={isShowingNavigate}
