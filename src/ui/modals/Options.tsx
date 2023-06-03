@@ -46,7 +46,7 @@ export const Options: FC<Props> = ({
 
   return (
     <>
-      <div className="leaflet-bottom leaflet-right">
+      <div className="leaflet-top leaflet-right">
         <div className="flex flex-row items-center gap-2">
           {isShowTrash && (
             <div className="leaflet-control leaflet-bar bg-white">
