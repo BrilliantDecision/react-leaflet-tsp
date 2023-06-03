@@ -57,9 +57,7 @@ function App() {
 
     // get duration table
     axios
-      .get<ResponseDurationTable>(
-        `https://router.project-osrm.org/table/v1/driving/${parsedPoints}`
-      )
+      .get<ResponseDurationTable>(`/table/v1/driving/${parsedPoints}`)
       .then((data) => setRoute(data.data.durations));
   };
 
@@ -116,7 +114,7 @@ function App() {
 
     // old path info
     const responseOldPath = await axios.get<RouteResponse>(
-      `http://router.project-osrm.org/route/v1/driving/${[
+      `/route/v1/driving/${[
         ...points.map((val) => [val.lng, val.lat].join(",")),
         [points[0].lng, points[0].lat].join(","),
       ].join(";")}?overview=false`
@@ -124,7 +122,7 @@ function App() {
 
     // new path info
     const responseNewPath = await axios.get<RouteResponse>(
-      `http://router.project-osrm.org/route/v1/driving/${[
+      `/route/v1/driving/${[
         ...newPoints.map((val) => [val.lng, val.lat].join(",")),
         [newPoints[0].lng, newPoints[0].lat].join(","),
       ].join(";")}?overview=false`
