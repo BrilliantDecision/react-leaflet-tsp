@@ -161,8 +161,6 @@ function App() {
   };
 
   useEffect(() => {
-    alert(draggedEnd);
-    alert(routes.length);
     if (!draggedEnd || !routes.length) return;
     setDraggedEnd(() => false);
     onClickStart();
