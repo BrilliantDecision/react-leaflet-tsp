@@ -11,6 +11,8 @@ import axios from "axios";
 import { CalculateRouteBlock } from "./ui/components/CalculateRouteBlock";
 import { Options } from "./ui/modals/Options";
 
+axios.defaults.baseURL = "https://router.project-osrm.org";
+
 export interface ResponseDurationTable {
   code: "Ok" | unknown;
   durations: number[][];
