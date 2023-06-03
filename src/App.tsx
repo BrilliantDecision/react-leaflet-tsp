@@ -195,6 +195,19 @@ function App() {
           onClose={() => setShowInfo(false)}
           info={info}
         />
+        <CalculateRouteBlock
+          isShowing={points.length > 1 ? true : false}
+          onClickStart={onClickStart}
+        />
+        <Options
+          algorithm={algorithm}
+          setAlgorithm={(value) => setAlgorithm(() => value)}
+          isShowing={isShowingOptions}
+          setIsShowing={setIsShowingOptions}
+          onClearRoutes={() => setRoutes(() => [])}
+          onClearMarkers={() => setPoints(() => [])}
+          isShowTrash={routes.length > 0}
+        />
         <MapControl setPoints={setPoints} />
         {points.map((val) => (
           <Marker
@@ -233,19 +246,6 @@ function App() {
           <NewRoute key={index} />
         ))}
       </MapContainer>
-      <CalculateRouteBlock
-        isShowing={points.length > 1 ? true : false}
-        onClickStart={onClickStart}
-      />
-      <Options
-        algorithm={algorithm}
-        setAlgorithm={(value) => setAlgorithm(() => value)}
-        isShowing={isShowingOptions}
-        setIsShowing={setIsShowingOptions}
-        onClearRoutes={() => setRoutes(() => [])}
-        onClearMarkers={() => setPoints(() => [])}
-        isShowTrash={routes.length > 0}
-      />
     </div>
   );
 }
