@@ -39,26 +39,6 @@ function App() {
   const [algorithm, setAlgorithm] = useState<TSPAlgorithm>("hybrid"); // choose algorithm to run
   const [previousPoint, setPreviousPoint] = useState<L.LatLng>(); // save point on dragStart event and remove it when dragEnd event
   const [draggedEnd, setDraggedEnd] = useState(false); // dragEnd event was invoked
-  const [routeButtonState, setRouteButtonState] = useState<L.Control>();
-
-  const routeButton = L.Control.extend({
-    options: {
-      position: "bottomleft",
-      //control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
-    },
-    onAdd: function (map: Map) {
-      const div = L.DomUtil.create(
-        "img",
-        "leaflet-bar leaflet-control leaflet-control-custom"
-      );
-      div.innerText = "asdfasdf";
-      div.style.backgroundColor = "white";
-      div.style.width = "30px";
-      div.style.height = "30px";
-      div.onclick = function () {};
-      return div;
-    },
-  });
 
   const onClickMarker = (e: LeafletMouseEvent) => {
     const targetMarkerIndex = points.findIndex(
@@ -180,16 +160,6 @@ function App() {
     onClickStart();
   }, [draggedEnd]);
 
-  useEffect(() => {
-    if (!map || !routeButtonState) return;
-    if (points.length > 1) map.addControl(routeButtonState);
-    else map.removeControl(routeButtonState);
-  }, [points.length]);
-
-  useEffect(() => {
-    setRouteButtonState(() => new routeButton());
-  }, []);
-
   return (
     <div className="relative">
       <MapContainer
@@ -207,19 +177,6 @@ function App() {
           show={showInfo}
           onClose={() => setShowInfo(false)}
           info={info}
-        />
-        {/* <CalculateRouteBlock
-          isShowing={points.length > 1 ? true : false}
-          onClickStart={onClickStart}
-        /> */}
-        <Options
-          algorithm={algorithm}
-          setAlgorithm={(value) => setAlgorithm(() => value)}
-          isShowing={isShowingOptions}
-          setIsShowing={setIsShowingOptions}
-          onClearRoutes={() => setRoutes(() => [])}
-          onClearMarkers={() => setPoints(() => [])}
-          isShowTrash={routes.length > 0}
         />
         <MapControl setPoints={setPoints} />
         {points.map((val) => (
@@ -259,6 +216,19 @@ function App() {
           <NewRoute key={index} />
         ))}
       </MapContainer>
+      <CalculateRouteBlock
+        isShowing={points.length > 1 ? true : false}
+        onClickStart={onClickStart}
+      />
+      <Options
+        algorithm={algorithm}
+        setAlgorithm={(value) => setAlgorithm(() => value)}
+        isShowing={isShowingOptions}
+        setIsShowing={setIsShowingOptions}
+        onClearRoutes={() => setRoutes(() => [])}
+        onClearMarkers={() => setPoints(() => [])}
+        isShowTrash={routes.length > 0}
+      />
     </div>
   );
 }
