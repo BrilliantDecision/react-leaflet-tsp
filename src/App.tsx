@@ -161,7 +161,7 @@ function App() {
   }, [draggedEnd]);
 
   return (
-    <div className="relative">
+    <div className="relative h-screen w-screen">
       <MapContainer
         id="map"
         ref={setMap}

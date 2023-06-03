@@ -21,7 +21,7 @@ export const CalculateRouteBlock: FC<Props> = ({ isShowing, onClickStart }) => {
   return (
     <Transition
       as="div"
-      className="leaflet-bottom leaflet-left mt-20"
+      className="leaflet-bottom leaflet-left mb-10"
       show={isShowing}
       enter="transition-opacity duration-150"
       enterFrom="opacity-0"
