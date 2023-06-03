@@ -1,10 +1,9 @@
-import { LeafletMouseEvent, Map } from "leaflet";
+import L, { LeafletMouseEvent, Map } from "leaflet";
 import { useEffect, useState } from "react";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
 import MapControl from "./utils/Map/MapControl";
 import { CreatedRoute, createRoute } from "./utils/Route/Route";
 import { doAnnealing } from "./algorithms/annealing/annealing";
-import L from "leaflet";
 import { doNearestSearch } from "./algorithms/nearestSearch/nearestSearch";
 import { ComputedRouteInfo, Info } from "./ui/modals/ComptedRouteInfo";
 import axios from "axios";
@@ -162,6 +161,8 @@ function App() {
   };
 
   useEffect(() => {
+    alert(draggedEnd);
+    alert(routes.length);
     if (!draggedEnd || !routes.length) return;
     setDraggedEnd(() => false);
     onClickStart();
@@ -237,7 +238,8 @@ function App() {
 
                   return newState;
                 });
-                setDraggedEnd(() => true);
+
+                if (routes.length) setDraggedEnd(() => true);
               },
             }}
             position={val}
