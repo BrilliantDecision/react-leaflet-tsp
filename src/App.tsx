@@ -10,6 +10,7 @@ import { ComputedRouteInfo, Info } from "./ui/modals/ComptedRouteInfo";
 import axios from "axios";
 import { CalculateRouteBlock } from "./ui/components/CalculateRouteBlock";
 import { Options } from "./ui/modals/Options";
+import { FlyToMeButton } from "./ui/components/FlyToMeButton";
 
 axios.defaults.baseURL = "https://router.project-osrm.org";
 
@@ -182,8 +183,8 @@ function App() {
       <MapContainer
         id="map"
         ref={setMap}
-        center={[58.5213, 31.271]}
-        zoom={13}
+        center={[59.95469859363157, 30.34469510244506]}
+        zoom={12}
         scrollWheelZoom={true}
       >
         <TileLayer
@@ -199,6 +200,7 @@ function App() {
           isShowing={points.length > 1 ? true : false}
           onClickStart={onClickStart}
         />
+        <FlyToMeButton map={map} />
         <Options
           algorithm={algorithm}
           setAlgorithm={(value) => setAlgorithm(() => value)}

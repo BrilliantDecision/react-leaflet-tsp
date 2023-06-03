@@ -35,7 +35,6 @@ export const CalculateRouteBlock: FC<Props> = ({ isShowing, onClickStart }) => {
           ref={сalculateRouteButton}
           className="p-2"
           onClick={(e) => {
-            console.log(e);
             onClickStart?.();
           }}
         >
