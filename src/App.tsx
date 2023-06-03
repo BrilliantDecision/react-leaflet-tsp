@@ -40,6 +40,12 @@ function App() {
   const [previousPoint, setPreviousPoint] = useState<L.LatLng>(); // save point on dragStart event and remove it when dragEnd event
   const [draggedEnd, setDraggedEnd] = useState(false); // dragEnd event was invoked
 
+  function resizeWindow() {
+    // We execute the same script as before
+    let vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty("--vh", `${vh}px`);
+  }
+
   const onClickMarker = (e: LeafletMouseEvent) => {
     const targetMarkerIndex = points.findIndex(
       (val) => val.lat === e.latlng.lat && val.lng === e.latlng.lng
@@ -160,8 +166,17 @@ function App() {
     onClickStart();
   }, [draggedEnd]);
 
+  useEffect(() => {
+    // We listen to the resize event
+    window.addEventListener("resize", resizeWindow);
+
+    return () => {
+      window.removeEventListener("resize", resizeWindow);
+    };
+  }, []);
+
   return (
-    <div className="relative h-screen w-screen">
+    <div className="relative container">
       <MapContainer
         id="map"
         ref={setMap}
