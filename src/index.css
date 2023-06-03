@@ -20,5 +20,12 @@
     padding: 0 !important;
     width: 90%;
     height: 100%;
+  }
 }
+.leaflet-routing-container {
+  padding-top: 0px;
+}
+
+.leaflet-routing-container-hide .leaflet-routing-collapse-btn {
+  left: 2px;
 }
