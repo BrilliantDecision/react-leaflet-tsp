@@ -3,7 +3,7 @@ import L from "leaflet";
 export const getRouteInstance = (waypoints: L.LatLng[]) => {
   const instance = L.Routing.control({
     waypoints,
-    show: true,
+    show: window.innerWidth > 640 ? true : false,
     addWaypoints: true,
     routeWhileDragging: true,
     fitSelectedRoutes: true,

@@ -1,14 +1,25 @@
 import { Dialog, RadioGroup, Transition } from "@headlessui/react";
-import { Dispatch, FC, Fragment, SetStateAction } from "react";
+import {
+  Dispatch,
+  FC,
+  Fragment,
+  SetStateAction,
+  useEffect,
+  useRef,
+} from "react";
 import { TSPAlgorithm } from "../../App";
 import { TSPAlgorithmsArray } from "../../utils/static/algorithms";
-import { CheckIcon, WrenchIcon } from "@heroicons/react/24/outline";
+import { CheckIcon, TrashIcon, WrenchIcon } from "@heroicons/react/24/outline";
+import L from "leaflet";
 
 interface Props {
   algorithm: TSPAlgorithm;
   setAlgorithm: (value: TSPAlgorithm) => void;
   isShowing?: boolean;
   setIsShowing: Dispatch<SetStateAction<boolean>>;
+  onClearRoutes?: () => void;
+  onClearMarkers?: () => void;
+  isShowTrash?: boolean;
 }
 
 export const Options: FC<Props> = ({
@@ -16,23 +27,56 @@ export const Options: FC<Props> = ({
   setAlgorithm,
   isShowing,
   setIsShowing,
+  onClearRoutes,
+  onClearMarkers,
+  isShowTrash,
 }) => {
+  const optionsButton = useRef<HTMLButtonElement>(null);
+  const trashButton = useRef<HTMLButtonElement>(null);
+
+  // stop propagation (tricky I know =))
+  useEffect(() => {
+    if (optionsButton.current) {
+      L.DomEvent.disableClickPropagation(optionsButton.current);
+    }
+    if (trashButton.current) {
+      L.DomEvent.disableClickPropagation(trashButton.current);
+    }
+  });
+
   return (
     <>
-      <div className="leaflet-top leaflet-right">
-        <div className="leaflet-control leaflet-bar bg-white">
-          <button
-            className="p-2"
-            onClick={() => setIsShowing((prevState) => !prevState)}
-          >
-            <WrenchIcon className="h-5 w-5" />
-          </button>
+      <div className="leaflet-bottom leaflet-right">
+        <div className="flex flex-row items-center gap-2">
+          {isShowTrash && (
+            <div className="leaflet-control leaflet-bar bg-white">
+              <button
+                ref={trashButton}
+                className="p-2"
+                onClick={() => {
+                  onClearRoutes?.();
+                  onClearMarkers?.();
+                }}
+              >
+                <TrashIcon className="h-5 w-5" />
+              </button>
+            </div>
+          )}
+          <div className="leaflet-control leaflet-bar bg-white">
+            <button
+              ref={optionsButton}
+              className="p-2"
+              onClick={() => setIsShowing((prevState) => !prevState)}
+            >
+              <WrenchIcon className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
       <Transition appear show={isShowing} as={Fragment}>
         <Dialog
           as="div"
-          className="relative z-[9999999999999999]"
+          className="relative z-[10000000]"
           onClose={() => setIsShowing(() => false)}
         >
           <Transition.Child

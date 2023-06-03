@@ -1,14 +1,12 @@
 import { LeafletMouseEvent, Map } from "leaflet";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { MapContainer, Marker, TileLayer } from "react-leaflet";
-import { useLeafletContext } from "@react-leaflet/core";
 import MapControl from "./utils/Map/MapControl";
 import { CreatedRoute, createRoute } from "./utils/Route/Route";
 import { doAnnealing } from "./algorithms/annealing/annealing";
 import L from "leaflet";
 import { doNearestSearch } from "./algorithms/nearestSearch/nearestSearch";
 import { ComputedRouteInfo, Info } from "./ui/modals/ComptedRouteInfo";
-import { NavigateModal } from "./ui/modals/NavigateModal";
 import axios from "axios";
 import { CalculateRouteBlock } from "./ui/components/CalculateRouteBlock";
 import { Options } from "./ui/modals/Options";
@@ -35,12 +33,10 @@ function App() {
   const [routes, setRoutes] = useState<CreatedRoute[]>([]); // created routes on map
   const [info, setInfo] = useState<Info>(); // info about route
   const [showInfo, setShowInfo] = useState(false); // show info about route
-  const [isShowingNavigate, setIsShowingNavigate] = useState(false); //  open navigate modal
   const [isShowingOptions, setIsShowingOptions] = useState(false); // open algorithms and options
   const [algorithm, setAlgorithm] = useState<TSPAlgorithm>("hybrid"); // choose algorithm to run
   const [previousPoint, setPreviousPoint] = useState<L.LatLng>(); // save point on dragStart event and remove it when dragEnd event
   const [draggedEnd, setDraggedEnd] = useState(false); // dragEnd event was invoked
-  const [routeControl, setRouteControl] = useState<L.Control>();
 
   const onClickMarker = (e: LeafletMouseEvent) => {
     const targetMarkerIndex = points.findIndex(
@@ -99,23 +95,6 @@ function App() {
       return annealingPath;
     }
   };
-
-  // const customRouteControl = L.Control.extend({
-  //   options: {
-  //     position: "topleft",
-  //     //control position - allowed: 'topleft', 'topright', 'bottomleft', 'bottomright'
-  //   },
-  //   onAdd: function () {
-  //     const img = L.DomUtil.create(
-  //       "img",
-  //       "leaflet-bar leaflet-control leaflet-control-custom"
-  //     );
-  //     img.src = chevronDoubleUpIcon;
-  //     img.style.backgroundColor = "white";
-  //     img.onclick = function () {};
-  //     return img;
-  //   },
-  // });
 
   // draw routes and start algorithm
   const setRoute = async (durations: number[][]) => {
@@ -176,28 +155,10 @@ function App() {
   };
 
   useEffect(() => {
-    if (points.length > 1) {
-      setIsShowingNavigate(() => true);
-    } else {
-      setIsShowingNavigate(() => false);
-    }
-  }, [points]);
-
-  useEffect(() => {
     if (!draggedEnd || !routes.length) return;
     setDraggedEnd(() => false);
     onClickStart();
   }, [draggedEnd]);
-
-  useEffect(() => {
-    if (!map || !routeControl) return;
-    if (points.length > 1) map.addControl(routeControl);
-    else map.removeControl(routeControl);
-  }, [points.length]);
-
-  // useEffect(() => {
-  //   setRouteControl(() => new customRouteControl());
-  // }, []);
 
   return (
     <div className="relative">
@@ -216,6 +177,19 @@ function App() {
           show={showInfo}
           onClose={() => setShowInfo(false)}
           info={info}
+        />
+        <CalculateRouteBlock
+          isShowing={points.length > 1 ? true : false}
+          onClickStart={onClickStart}
+        />
+        <Options
+          algorithm={algorithm}
+          setAlgorithm={(value) => setAlgorithm(() => value)}
+          isShowing={isShowingOptions}
+          setIsShowing={setIsShowingOptions}
+          onClearRoutes={() => setRoutes(() => [])}
+          onClearMarkers={() => setPoints(() => [])}
+          isShowTrash={routes.length > 0}
         />
         <MapControl setPoints={setPoints} />
         {points.map((val) => (
@@ -255,16 +229,6 @@ function App() {
           <NewRoute key={index} />
         ))}
       </MapContainer>
-      {/* <NavigateModal
-        isShowing={isShowingNavigate}
-        onClickStart={() => onClickStart()}
-      /> */}
-      <Options
-        algorithm={algorithm}
-        setAlgorithm={(value) => setAlgorithm(() => value)}
-        isShowing={isShowingOptions}
-        setIsShowing={setIsShowingOptions}
-      />
     </div>
   );
 }

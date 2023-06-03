@@ -15,4 +15,10 @@
   .leaflet-routing-alt {
     max-height: 240px;
   }
+  .leaflet-routing-container {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 90%;
+    height: 100%;
+}
 }
