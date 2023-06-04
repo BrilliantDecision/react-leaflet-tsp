@@ -5,7 +5,7 @@ import MapControl from "./utils/Map/MapControl";
 import { CreatedRoute, createRoute } from "./utils/Route/Route";
 import { doAnnealing } from "./algorithms/annealing/annealing";
 import { doNearestSearch } from "./algorithms/nearestSearch/nearestSearch";
-import { ComputedRouteInfo, Info } from "./ui/modals/ComptedRouteInfo";
+import { ComputedRouteInfo, Info } from "./ui/modals/ComputedRouteInfo";
 import axios from "axios";
 import { CalculateRouteBlock } from "./ui/components/CalculateRouteBlock";
 import { Options } from "./ui/modals/Options";
