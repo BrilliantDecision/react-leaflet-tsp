@@ -38,7 +38,7 @@ export const CalculateRouteBlock: FC<Props> = ({ isShowing, onClickStart }) => {
             onClickStart?.();
           }}
         >
-          <ChevronDoubleUpIcon className="h-5 w-5" />
+          В путь!
         </button>
       </div>
     </Transition>

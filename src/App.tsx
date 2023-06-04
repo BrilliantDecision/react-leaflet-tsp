@@ -207,7 +207,7 @@ function App() {
           setIsShowing={setIsShowingOptions}
           onClearRoutes={() => setRoutes(() => [])}
           onClearMarkers={() => setPoints(() => [])}
-          isShowTrash={routes.length > 0}
+          isShowTrash={routes.length > 0 || points.length > 0}
         />
         <MapControl setPoints={setPoints} />
         {points.map((val) => (
