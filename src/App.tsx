@@ -16,6 +16,7 @@ axios.defaults.baseURL = "https://router.project-osrm.org";
 export interface ResponseDurationTable {
   code: "Ok" | unknown;
   durations: number[][];
+  distances: number[][];
 }
 
 export interface RouteResponse {
@@ -65,8 +66,8 @@ function App() {
 
     // get duration table
     axios
-      .get<ResponseDurationTable>(`/table/v1/driving/${parsedPoints}`)
-      .then((data) => setRoute(data.data.durations));
+      .get<ResponseDurationTable>(`/table/v1/driving/${parsedPoints}?annotations=distance`)
+      .then((data) => setRoute(data.data.distances));
   };
 
   const runAlgorithm = (matrix: number[][]) => {
@@ -95,7 +96,7 @@ function App() {
 
       // run annealing on nearest path
       const { path: annealingPath } = doAnnealing(
-        { it: 1000, itPerTemp: 100, tMax: 100 },
+        { it: 100, itPerTemp: 150, tMax: 100 },
         { matrix, previousPath: nearestSearchPath }
       );
       return annealingPath;
@@ -125,7 +126,7 @@ function App() {
       `/route/v1/driving/${[
         ...points.map((val) => [val.lng, val.lat].join(",")),
         [points[0].lng, points[0].lat].join(","),
-      ].join(";")}?overview=false`
+      ].join(";")}?overview=false&annotations=distance`
     );
 
     // new path info
@@ -133,7 +134,7 @@ function App() {
       `/route/v1/driving/${[
         ...newPoints.map((val) => [val.lng, val.lat].join(",")),
         [newPoints[0].lng, newPoints[0].lat].join(","),
-      ].join(";")}?overview=false`
+      ].join(";")}?overview=false&annotations=distance`
     );
 
     // old
