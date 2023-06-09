@@ -63,7 +63,7 @@ export const ComputedRouteInfo: FC<Props> = ({ show, onClose, info }) => {
                   <p className="text-sm text-gray-500">
                     {`Длина найденного пути: ${info?.newDistance} км.`}
                   </p>
-                  <p className="text-sm text-gray-500">
+                  {/* <p className="text-sm text-gray-500">
                     {`Время исходного пути: ${
                       (info?.oldDuration ?? 1) / 3600
                     } час.`}
@@ -72,7 +72,7 @@ export const ComputedRouteInfo: FC<Props> = ({ show, onClose, info }) => {
                     {`Время найденного пути: ${
                       (info?.newDuration ?? 1) / 3600
                     } час.`}
-                  </p>
+                  </p> */}
                 </div>
 
                 <div className="mt-4">
